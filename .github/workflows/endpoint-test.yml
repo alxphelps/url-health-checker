@@ -1,0 +1,30 @@
+name: Endpoint Test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - urls
+
+jobs:
+  endpoint-test:
+    name: Test endpoint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run endpoint tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 endpoint_test.py | tee endpoint-test-results.txt
+
+      - name: Upload endpoint test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: endpoint-test-results
+          path: endpoint-test-results.txt
+          if-no-files-found: error
