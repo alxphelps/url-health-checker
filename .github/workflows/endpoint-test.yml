@@ -19,12 +19,12 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python3 scripts/endpoint_test.py | tee endpoint-test-results.txt
+          python3 scripts/endpoint_test.py | tee endpoint-test-results.json
 
       - name: Upload endpoint test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: endpoint-test-results
-          path: endpoint-test-results.txt
+          path: endpoint-test-results.json
           if-no-files-found: error
