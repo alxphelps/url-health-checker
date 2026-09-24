@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-URLS_FILE = Path(__file__).with_name("urls")
+URLS_FILE = Path(__file__).resolve().parents[1] / "sites" / "urls"
 TIMEOUT = 15
 HOSTNAME_PATTERN = re.compile(r"^[A-Za-z0-9.-]+$")
 
