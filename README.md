@@ -1,6 +1,6 @@
 # URL Health Checker
 
-This script checks a list of hostnames from the `urls` file and prints a simple table showing the result of each check.
+This script checks a list of hostnames from the `urls` file and prints the results as JSON.
 
 It does three things for every hostname:
 
@@ -8,7 +8,7 @@ It does three things for every hostname:
 - Tries an HTTP request and reports the returned HTTP status
 - Opens a secure TLS connection on port 443 and confirms the certificate is valid
 
-It reads the hostnames from `urls`, skips blank lines and comment lines, and prints a final PASS/FAIL summary.
+It reads the hostnames from `urls`, skips blank lines and comment lines, and includes a final PASS/FAIL summary in the `overall` field.
 
 ## Run it
 
@@ -20,15 +20,27 @@ python endpoint_test.py
 
 ## Example output
 
-```text
-Endpoint    | HTTPS | HTTPS Response Time   | HTTP | HTTP Response Time   | Certificate | TLS
-------------+-------+-----------------------+------+----------------------+-------------+-----
-google.com  | 200   | 221 ms                | 200  | 202 ms               | PASS        | TLSv1.3
-yahoo.com   | 429   | 180 ms                | 429  | 175 ms               | PASS        | TLSv1.3
-youtube.com | 200   | 238 ms                | 200  | 266 ms               | PASS        | TLSv1.3
-
-Overall: PASS
+```json
+{
+	"results": [
+		{
+			"endpoint": "google.com",
+			"https": {
+				"status": "200",
+				"response_time_ms": 221
+			},
+			"http": {
+				"status": "200",
+				"response_time_ms": 202
+			},
+			"certificate": {
+				"status": "PASS",
+				"tls": "TLSv1.3"
+			}
+		}
+	],
+	"overall": "PASS"
+}
 ```
 
-This is useful for quickly checking whether a site is reachable over HTTP and HTTPS and whether its TLS certificate validates cleanly.
-The `HTTPS|HTTP Response Time` columns show how long each HTTP or HTTPS request took in milliseconds.
+This is useful for quickly checking whether a site is reachable over HTTP and HTTPS and whether its TLS certificate validates cleanly. Response times are reported as numeric milliseconds.
