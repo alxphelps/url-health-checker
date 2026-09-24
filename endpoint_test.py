@@ -2,6 +2,7 @@
 import re
 import socket
 import ssl
+import time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -13,13 +14,17 @@ HOSTNAME_PATTERN = re.compile(r"^[A-Za-z0-9.-]+$")
 
 def request_status(scheme, hostname, context=None):
     request = Request(f"{scheme}://{hostname}", method="GET")
+    started = time.perf_counter()
     try:
         with urlopen(request, context=context, timeout=TIMEOUT) as response:
-            return str(response.status)
+            status = str(response.status)
     except HTTPError as error:
-        return str(error.code)
+        status = str(error.code)
     except (OSError, ValueError, ssl.SSLError):
-        return "ERROR"
+        status = "ERROR"
+
+    response_time = time.perf_counter() - started
+    return status, response_time
 
 
 def certificate_status(hostname):
@@ -49,17 +54,27 @@ def main():
     all_passed = True
     for hostname in read_hostnames():
         if not HOSTNAME_PATTERN.fullmatch(hostname):
-            rows.append((hostname, "INVALID", "INVALID", "FAIL", "-"))
+            rows.append((hostname, "INVALID", "-", "INVALID", "-", "FAIL", "-"))
             all_passed = False
             continue
 
         certificate, tls_version = certificate_status(hostname)
-        https_status = request_status("https", hostname, ssl.create_default_context())
-        http_status = request_status("http", hostname)
-        rows.append((hostname, https_status, http_status, certificate, tls_version))
+        https_status, https_time = request_status("https", hostname, ssl.create_default_context())
+        http_status, http_time = request_status("http", hostname)
+        rows.append(
+            (
+                hostname,
+                https_status,
+                f"{https_time * 1000:.0f} ms",
+                http_status,
+                f"{http_time * 1000:.0f} ms",
+                certificate,
+                tls_version,
+            )
+        )
         all_passed &= https_status != "ERROR" and http_status != "ERROR" and certificate == "PASS"
 
-    headers = ("Endpoint", "HTTPS", "HTTP", "Certificate", "TLS")
+    headers = ("Endpoint", "HTTPS", "Time", "HTTP", "Time", "Certificate", "TLS")
     widths = [max(len(headers[index]), *(len(row[index]) for row in rows)) for index in range(len(headers))]
     separator = "-+-".join("-" * width for width in widths)
 

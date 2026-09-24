@@ -21,13 +21,14 @@ python endpoint_test.py
 ## Example output
 
 ```text
-Endpoint    | HTTPS | HTTP | Certificate | TLS
-------------+-------+------+-------------+--------
-google.com  | 200   | 200  | PASS        | TLSv1.3
-yahoo.com   | 429   | 429  | PASS        | TLSv1.3
-youtube.com | 200   | 200  | PASS        | TLSv1.3
+Endpoint    | HTTPS | Time   | HTTP | Time   | Certificate | TLS
+--------------+-------+--------+------+--------+-------------+--------
+google.com  | 200   | 221 ms | 200  | 202 ms | PASS        | TLSv1.3
+yahoo.com   | 429   | 180 ms | 429  | 175 ms | PASS        | TLSv1.3
+youtube.com | 200   | 238 ms | 200  | 266 ms | PASS        | TLSv1.3
 
 Overall: PASS
 ```
 
 This is useful for quickly checking whether a site is reachable over HTTP and HTTPS and whether its TLS certificate validates cleanly.
+The `Time` columns show how long each HTTP or HTTPS request took in milliseconds.
