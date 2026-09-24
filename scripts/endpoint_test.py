@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import json
 import re
 import socket
 import ssl
@@ -51,41 +50,40 @@ def main():
         print(f"Missing {URLS_FILE}")
         return 1
 
-    results = []
+    rows = []
     all_passed = True
     for hostname in read_hostnames():
         if not HOSTNAME_PATTERN.fullmatch(hostname):
-            results.append(
-                {
-                    "endpoint": hostname,
-                    "https": {"status": "INVALID", "response_time_ms": None},
-                    "http": {"status": "INVALID", "response_time_ms": None},
-                    "certificate": {"status": "FAIL", "tls": None},
-                }
-            )
+            rows.append((hostname, "INVALID", "-", "INVALID", "-", "FAIL", "-"))
             all_passed = False
             continue
 
         certificate, tls_version = certificate_status(hostname)
         https_status, https_time = request_status("https", hostname, ssl.create_default_context())
         http_status, http_time = request_status("http", hostname)
-        results.append(
-            {
-                "endpoint": hostname,
-                "https": {
-                    "status": https_status,
-                    "response_time_ms": round(https_time * 1000),
-                },
-                "http": {
-                    "status": http_status,
-                    "response_time_ms": round(http_time * 1000),
-                },
-                "certificate": {"status": certificate, "tls": tls_version},
-            }
+        rows.append(
+            (
+                hostname,
+                https_status,
+                f"{https_time * 1000:.0f} ms",
+                http_status,
+                f"{http_time * 1000:.0f} ms",
+                certificate,
+                tls_version,
+            )
         )
         all_passed &= https_status != "ERROR" and http_status != "ERROR" and certificate == "PASS"
 
-    print(json.dumps({"results": results, "overall": "PASS" if all_passed else "FAIL"}, indent=2))
+    headers = ("Endpoint", "HTTPS", "HTTPS Response Time", "HTTP", "HTTP Response Time", "Certificate", "TLS")
+    widths = [max(len(headers[index]), *(len(row[index]) for row in rows)) for index in range(len(headers))]
+    separator = "-+-".join("-" * width for width in widths)
+
+    print(" | ".join(header.ljust(widths[index]) for index, header in enumerate(headers)))
+    print(separator)
+    for row in rows:
+        print(" | ".join(value.ljust(widths[index]) for index, value in enumerate(row)))
+    print()
+    print(f"Overall: {'PASS' if all_passed else 'FAIL'}")
     return 0 if all_passed else 1
 
 
