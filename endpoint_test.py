@@ -74,7 +74,7 @@ def main():
         )
         all_passed &= https_status != "ERROR" and http_status != "ERROR" and certificate == "PASS"
 
-    headers = ("Endpoint", "HTTPS", "Time", "HTTP", "Time", "Certificate", "TLS")
+    headers = ("Endpoint", "HTTPS", "HTTPS Response Time", "HTTP", "HTTP Response Time", "Certificate", "TLS")
     widths = [max(len(headers[index]), *(len(row[index]) for row in rows)) for index in range(len(headers))]
     separator = "-+-".join("-" * width for width in widths)
 
