@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          python3 endpoint_test.py | tee endpoint-test-results.txt
+          python3 scripts/endpoint_test.py | tee endpoint-test-results.txt
 
       - name: Upload endpoint test results
         if: always()
